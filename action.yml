@@ -1,0 +1,133 @@
+# PwshGuard: security scan for PowerShell in GitHub Actions.
+#
+# Runs PSScriptAnalyzer with the PwshGuard rules over the repository's PowerShell files and the
+# `run:` blocks of `shell: pwsh` steps, writes the report to the job summary and, on a pull
+# request, into one sticky comment that each run rewrites. Findings do not fail the job unless
+# `fail-on` says so.
+name: PwshGuard
+description: Security scan for PowerShell in GitHub Actions, built on PSScriptAnalyzer.
+author: hcoberdalhoff
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  path:
+    description: >-
+      PowerShell files or folders to scan, comma- or newline-separated. Default: every tracked
+      *.ps1, *.psm1 and *.psd1 file, plus the inline steps of every tracked workflow and action.
+    required: false
+    default: ""
+  workflow-path:
+    description: >-
+      Workflow or action files whose `shell: pwsh` steps to scan, comma- or newline-separated.
+      Default: every tracked YAML file when `path` is empty, none when it is set.
+    required: false
+    default: ""
+  settings:
+    description: >-
+      PSScriptAnalyzer settings file (.psd1) in your repository, e.g. for ExcludeRules. The
+      PwshGuard rules are added to it. Default: the settings shipped with the action.
+    required: false
+    default: ""
+  comment:
+    description: Post or update the findings comment on a pull request (true/false).
+    required: false
+    default: "true"
+  fail-on:
+    description: >-
+      When to fail the step: `none` (default; findings never block), `changed` (findings in files
+      the pull request changes) or `all` (any finding).
+    required: false
+    default: none
+  github-token:
+    description: Token for listing the pull request's files and posting the comment.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  findings:
+    description: Number of unsuppressed security findings in the scanned files.
+    value: ${{ steps.analyze.outputs.findings }}
+  findings-in-changed:
+    description: Number of those findings in files the pull request changes.
+    value: ${{ steps.analyze.outputs.findings-in-changed }}
+  report-path:
+    description: Path of the Markdown report.
+    value: ${{ steps.analyze.outputs.report-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Analyze PowerShell
+      id: analyze
+      shell: pwsh
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_WORKFLOW_PATH: ${{ inputs.workflow-path }}
+        INPUT_SETTINGS: ${{ inputs.settings }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        BLOB_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.sha || github.sha }}
+      run: |
+        function Split-List([string]$Value) { @($Value -split '[,\r\n]+' | ForEach-Object { $_.Trim() } | Where-Object { $_ }) }
+
+        $changed = @()
+        if ($env:PR_NUMBER) {
+          $changed = @(gh api "repos/$env:GH_REPO/pulls/$env:PR_NUMBER/files" --paginate --jq '.[].filename')
+          if ($LASTEXITCODE -ne 0) { throw 'Listing the pull request files failed.' }
+        }
+        $report = Join-Path $env:RUNNER_TEMP 'pwshguard-report.md'
+        $arguments = @{ ReportPath = $report; ChangedFile = $changed; BlobUrl = $env:BLOB_URL }
+        if ($env:INPUT_PATH) { $arguments.Path = Split-List $env:INPUT_PATH }
+        if ($env:INPUT_WORKFLOW_PATH) { $arguments.WorkflowPath = Split-List $env:INPUT_WORKFLOW_PATH }
+        if ($env:INPUT_SETTINGS) { $arguments.Settings = $env:INPUT_SETTINGS }
+
+        $runner = Get-Command -Name (Join-Path $env:GITHUB_ACTION_PATH 'src/Invoke-PwshGuard.ps1') -CommandType ExternalScript
+        $result = & $runner @arguments
+        Get-Content -LiteralPath $report -Raw | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "findings=$($result.Reported)", "findings-in-changed=$($result.InChanged)", "report-path=$report" |
+          Add-Content -Path $env:GITHUB_OUTPUT
+
+    # A fork or Dependabot pull request gets a read-only token, so the comment would fail; the
+    # report stays in the job summary.
+    - name: Post or update the findings comment
+      if: >-
+        inputs.comment == 'true' &&
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.user.login != 'dependabot[bot]'
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPORT_PATH: ${{ steps.analyze.outputs.report-path }}
+      run: |
+        # Bot-authored only, so a human comment quoting the marker is never overwritten.
+        $ids = @(gh api "repos/$env:GH_REPO/issues/$env:PR_NUMBER/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- pwshguard-findings-report -->")) | .id')
+        if ($LASTEXITCODE -ne 0) { throw 'Listing the pull request comments failed.' }
+        $id = $ids | Select-Object -First 1
+        if ($id) {
+          gh api "repos/$env:GH_REPO/issues/comments/$id" -X PATCH -F "body=@$env:REPORT_PATH" | Out-Null
+        }
+        else {
+          gh api "repos/$env:GH_REPO/issues/$env:PR_NUMBER/comments" -F "body=@$env:REPORT_PATH" | Out-Null
+        }
+        if ($LASTEXITCODE -ne 0) { throw 'Posting the findings comment failed.' }
+
+    - name: Apply fail-on
+      if: inputs.fail-on != 'none'
+      shell: pwsh
+      env:
+        FAIL_ON: ${{ inputs.fail-on }}
+        FINDINGS: ${{ steps.analyze.outputs.findings }}
+        FINDINGS_IN_CHANGED: ${{ steps.analyze.outputs.findings-in-changed }}
+      run: |
+        $count = switch ($env:FAIL_ON) {
+          'changed' { [int]$env:FINDINGS_IN_CHANGED }
+          'all' { [int]$env:FINDINGS }
+          default { throw "fail-on must be none, changed or all, not '$env:FAIL_ON'." }
+        }
+        if ($count -gt 0) { throw "PwshGuard: $count security finding(s) ($env:FAIL_ON)." }

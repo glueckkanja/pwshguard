@@ -1,0 +1,15 @@
+# PwshGuard demo: deliberately unsafe composite action. Not referenced by any workflow, so it
+# never runs; CI scans it to show the report.
+name: PwshGuard demo
+description: Label a pull request from its title (unsafe on purpose).
+runs:
+  using: composite
+  steps:
+    # PwshGuardExpressionInScript: the runner pastes the PR title into the script
+    # before PowerShell parses it, so a title with a quote in it becomes code.
+    - name: Label PR
+      shell: pwsh
+      run: |
+        $title = "${{ github.event.pull_request.title }}"
+        gh pr edit ${{ github.event.pull_request.number }} --add-label $title
+        if ($LASTEXITCODE -ne 0) { throw 'labelling failed' }

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Pester
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run the rule and runner tests
+        shell: pwsh
+        run: |
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
+          Import-Module Pester -RequiredVersion 5.7.1
+          Invoke-Pester -Path tests -CI
+
+  # The action scans its own code and fails on any finding.
+  self-scan:
+    name: Self-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: PwshGuard
+        uses: ./
+        with:
+          path: src, tests
+          workflow-path: action.yml, .github/workflows/ci.yml
+          comment: "false"
+          fail-on: all
+
+  # The deliberately unsafe files under demo/: shows the report and the sticky PR comment.
+  demo:
+    name: Demo scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # sticky findings comment
+    concurrency:
+      group: pwshguard-demo-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: PwshGuard
+        id: pwshguard
+        uses: ./
+        with:
+          path: demo
+          workflow-path: demo/unsafe-action.yml
+
+      - name: Show the counts
+        shell: pwsh
+        env:
+          FINDINGS: ${{ steps.pwshguard.outputs.findings }}
+        run: Write-Host "PwshGuard reported $env:FINDINGS finding(s) in demo/."
