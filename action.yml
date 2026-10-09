@@ -6,7 +6,7 @@
 # `fail-on` says so.
 name: PwshGuard
 description: Security scan for PowerShell in GitHub Actions, built on PSScriptAnalyzer.
-author: hcoberdalhoff
+author: glueckkanja
 branding:
   icon: shield
   color: blue
