@@ -42,7 +42,7 @@ jobs:
           persist-credentials: false
 
       - name: PwshGuard
-        uses: ./
+        uses: $/
         with:
           path: src, tests, .github/scripts
           workflow-path: action.yml, .github/workflows/ci.yml, .github/workflows/update-modules.yml
