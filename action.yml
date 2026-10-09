@@ -76,7 +76,7 @@ runs:
         $changed = @()
         if ($env:PR_NUMBER) {
           $changed = @(gh api "repos/$env:GH_REPO/pulls/$env:PR_NUMBER/files" --paginate --jq '.[].filename')
-          if ($LASTEXITCODE -ne 0) { throw 'Listing the pull request files failed.' }
+          if ($LASTEXITCODE -ne 0) { throw 'Listing the pull request files failed. The job needs pull-requests: read (write when comment is on).' }
         }
         $report = Join-Path $env:RUNNER_TEMP 'pwshguard-report.md'
         $arguments = @{ ReportPath = $report; ChangedFile = $changed; BlobUrl = $env:BLOB_URL }

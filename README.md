@@ -67,6 +67,10 @@ you set `fail-on`.
 
 Outputs: `findings`, `findings-in-changed`, `report-path`.
 
+Permissions: `contents: read`. On pull requests the job also needs `pull-requests: read` to list
+the changed files, or `pull-requests: write` when `comment` is on. A public repository can
+list the files without it, a private one cannot.
+
 ## Rules
 
 | Rule | Severity | Reports |

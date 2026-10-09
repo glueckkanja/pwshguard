@@ -31,6 +31,9 @@ jobs:
   self-scan:
     name: Self-scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read # lists the pull request's files
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
