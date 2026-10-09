@@ -107,12 +107,12 @@ justification. To turn a rule off entirely, list it in `ExcludeRules` in your se
 ## Local use
 
 ```powershell
-Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser
 # from the root of the repository to scan:
 /path/to/pwshguard/src/Invoke-PwshGuard.ps1
 ```
 
-It prints the findings and fails when there are any.
+It installs the pinned PSScriptAnalyzer version (`src/RequiredModules.psd1`) when it is missing,
+prints the findings, and fails when there are any.
 
 ## Development
 
