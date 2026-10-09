@@ -71,10 +71,13 @@ control when that happens.
 Releases are immutable once published, so a mistake can only be fixed with a new release.
 
 1. Make sure `main` is green, and merge any pending module update first.
-2. Create the release as a **draft** with a new tag `vMAJOR.MINOR.PATCH` on `main`. Write
-   release notes that list breaking changes first, with what users must change.
-3. Check the draft's tag, notes and Marketplace listing. Then publish.
-4. Update the usage example in the README to the new version.
+2. Update the usage example in the README to the new version, and merge that. The README is part
+   of the release, and it cannot be changed after publishing.
+3. Create the release as a **draft** with a new tag `vMAJOR.MINOR.PATCH` on `main`. Write
+   release notes that list breaking changes first, with what users must change. A draft's tag is
+   only created when it is published, from `main` at that moment.
+4. Check the draft's notes and Marketplace listing. Then publish, and verify it with
+   `gh release verify <tag> -R glueckkanja/pwshguard`.
 5. Bump the pin in repositories that use the action (Dependabot does this for those that have
    it configured).
 
