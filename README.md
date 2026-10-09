@@ -116,19 +116,8 @@ prints the findings, and fails when there are any.
 
 ## Development
 
-```powershell
-Invoke-Pester -Path tests -Output Detailed
-```
-
-- `src/PwshGuard.psm1`: the rules. Each `Measure-PwshGuard*` function gets the file's root AST
-  once.
-- `src/Invoke-PwshGuard.ps1`: the runner. It extracts inline steps, applies
-  `PwshGuardExpressionInScript` and writes the report.
-- `tests/`: positive and negative cases for every rule, and the runner's YAML handling.
-- `demo/`: deliberately unsafe code. CI scans it to show the report.
-
-Every heuristic and every bypass found later starts as a test. CI runs the tests, scans this
-repository with its own action (`fail-on: all`), and scans `demo/`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout, how to make a change, what counts as the
+public interface, and how versions and releases work.
 
 ## License
 
