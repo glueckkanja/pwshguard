@@ -30,6 +30,8 @@ your workflows still need their usual protections:
 For the same reason, findings do not block a merge by default. The report is meant to inform
 the review, not to replace it.
 
+To report a vulnerability in PwshGuard itself, see [SECURITY.md](SECURITY.md).
+
 ## Usage
 
 ```yaml
@@ -67,6 +69,20 @@ Outputs: `findings`, `findings-in-changed`, `report-path`.
 Permissions: `contents: read`. On pull requests the job also needs `pull-requests: read` to list
 the changed files, or `pull-requests: write` when `comment` is on. A public repository can
 list the files without it, a private one cannot.
+
+### Limitations
+
+- **Linux runners.** PwshGuard is tested on `ubuntu-latest`. Its rules assume Linux; for
+  example, `ls`, `rm` and `cat` count as native programs, while on Windows they are PowerShell
+  aliases.
+- **PowerShell Gallery access.** The action installs the pinned PSScriptAnalyzer version from the
+  PowerShell Gallery when the runner does not have it. Self-hosted runners need access to it.
+- **No `pull_request_target`.** Run the action under `pull_request`. Under `pull_request_target`, a
+  workflow that checks out the pull request's code runs it with write access.
+- **Custom rules run.** A `CustomRulePath` in your settings file is loaded by PSScriptAnalyzer,
+  which executes those modules. Anyone who can change the settings file in a pull request can
+  therefore run code in the scan job, just as with any CI that runs code from a pull request.
+  Pull requests from forks get a read-only token.
 
 ## Rules
 
