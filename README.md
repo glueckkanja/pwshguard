@@ -10,6 +10,26 @@ inputs, API and model output), writes workflow command files, and gates deployme
 [zizmor](https://github.com/zizmorcore/zizmor) checks the workflow YAML but treats a `run:`
 script as text. PwshGuard parses that script as PowerShell.
 
+## What it is, and what it is not
+
+PwshGuard helps script authors and repository maintainers. It finds the mistakes that people
+writing in good faith make, for example an exit code nobody checks, a token printed to the log,
+or a pull request title pasted into a script.
+
+It does **not** protect you from malicious code. Static analysis relies on heuristics, and an
+author who wants to get past them can. A command can be built from string pieces, a script can
+be downloaded and run, and code can be shaped to slip past a rule. A clean report therefore says
+nothing about the intent of a change. Code from untrusted contributors still needs review, and
+your workflows still need their usual protections:
+
+- least-privilege `permissions:`
+- actions pinned to a commit SHA
+- no secrets for pull requests from forks
+- environment protection rules for deployments
+
+For the same reason, findings do not block a merge by default. The report is meant to inform
+the review, not to replace it.
+
 > **Status:** extracted from [Workplace Foundation](https://github.com/Workplace-Foundation/workplace-foundation)
 > for testing. This repository is not its final home.
 
