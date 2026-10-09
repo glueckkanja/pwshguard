@@ -37,3 +37,6 @@ Invoke-WebRequest -Uri 'http://example.com/file.zip' -OutFile file.zip
 
 # PwshGuardUnsafeRecursiveDelete: an empty $Name deletes all of $Root.
 Remove-Item -Path "$Root/$Name" -Recurse -Force
+
+# PSAvoidUsingConvertToSecureStringWithPlainText (built-in): a plain-text secret in the script.
+$password = ConvertTo-SecureString 'P@ssw0rd' -AsPlainText -Force
