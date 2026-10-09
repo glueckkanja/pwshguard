@@ -72,9 +72,10 @@ list the files without it, a private one cannot.
 
 ### Limitations
 
-- **Linux runners.** PwshGuard is tested on `ubuntu-latest`. Its rules assume Linux; for
-  example, `ls`, `rm` and `cat` count as native programs, while on Windows they are PowerShell
-  aliases.
+- **Linux and macOS.** CI runs the action on `ubuntu-latest`. The tests and the runner also pass
+  on macOS, run locally rather than as an action on a macOS runner. The rules assume a Unix
+  system; for example, `ls`, `rm` and `cat` count as native programs. On Windows these are
+  PowerShell aliases, so the findings differ there.
 - **PowerShell Gallery access.** The action installs the pinned PSScriptAnalyzer version from the
   PowerShell Gallery when the runner does not have it. Self-hosted runners need access to it.
 - **No `pull_request_target`.** Run the action under `pull_request`. Under `pull_request_target`, a
