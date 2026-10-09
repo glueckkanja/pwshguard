@@ -30,9 +30,6 @@ your workflows still need their usual protections:
 For the same reason, findings do not block a merge by default. The report is meant to inform
 the review, not to replace it.
 
-> **Status:** extracted from [Workplace Foundation](https://github.com/Workplace-Foundation/workplace-foundation)
-> for testing. This repository is not its final home.
-
 ## Usage
 
 ```yaml
