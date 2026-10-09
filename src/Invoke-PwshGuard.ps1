@@ -40,7 +40,7 @@ param(
     # Base for links to findings, e.g. https://github.com/<owner>/<repo>/blob/<sha>.
     [string]$BlobUrl,
     # Where the report's footer points readers for the rules.
-    [string]$RulesUrl = 'https://github.com/hcoberdalhoff/pwshguard#rules'
+    [string]$RulesUrl = 'https://github.com/glueckkanja/pwshguard#rules'
 )
 
 $ErrorActionPreference = 'Stop'

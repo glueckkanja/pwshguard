@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: hcoberdalhoff/pwshguard@main
+      - uses: glueckkanja/pwshguard@v0.1.0
 ```
 
 The action scans every tracked `*.ps1`, `*.psm1` and `*.psd1` file, and every `run:` block of a
