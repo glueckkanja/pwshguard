@@ -129,3 +129,7 @@ Invoke-Pester -Path tests -Output Detailed
 
 Every heuristic and every bypass found later starts as a test. CI runs the tests, scans this
 repository with its own action (`fail-on: all`), and scans `demo/`.
+
+## License
+
+[MIT](LICENSE)
