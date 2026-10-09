@@ -3,7 +3,7 @@
 # below, CI installs both, and .github/workflows/update-modules.yml proposes updates.
 @{
     # Runs the analysis (action and local use).
-    PSScriptAnalyzer = '1.24.0'
+    PSScriptAnalyzer = '1.25.0'
     # Runs the tests under tests/ (CI only).
-    Pester           = '5.7.1'
+    Pester           = '6.2.0'
 }
