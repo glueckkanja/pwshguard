@@ -1,0 +1,18 @@
+# Dependabot keeps the actions this repository uses pinned and current: the workflows under
+# .github/workflows and the root action.yml. The PowerShell modules (Pester, PSScriptAnalyzer)
+# come from the PowerShell Gallery, which Dependabot does not support.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # A new release gets a week before it is proposed, so a compromised or broken one is
+    # usually pulled before it reaches this repository.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
