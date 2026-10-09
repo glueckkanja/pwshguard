@@ -67,7 +67,7 @@ jobs:
 
       - name: PwshGuard
         id: pwshguard
-        uses: ./
+        uses: $/
         with:
           path: demo
           workflow-path: demo/unsafe-action.yml
