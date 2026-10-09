@@ -33,7 +33,8 @@ param(
     # PSScriptAnalyzer settings (ExcludeRules, IncludeDefaultRules ...). The PwshGuard rules are
     # added to its CustomRulePath, so a settings file does not need to know where they live.
     [string]$Settings = (Join-Path $PSScriptRoot 'PSScriptAnalyzerSettings.psd1'),
-    [string]$RequiredVersion = '1.24.0',
+    # PSScriptAnalyzer version to install and load. Default: the pin in RequiredModules.psd1.
+    [string]$RequiredVersion = (Import-PowerShellDataFile -LiteralPath (Join-Path $PSScriptRoot 'RequiredModules.psd1')).PSScriptAnalyzer,
     [string]$ReportPath,
     # Repository-relative paths changed by the pull request.
     [string[]]$ChangedFile = @(),

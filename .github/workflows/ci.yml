@@ -22,9 +22,10 @@ jobs:
       - name: Run the rule and runner tests
         shell: pwsh
         run: |
-          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
-          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
-          Import-Module Pester -RequiredVersion 5.7.1
+          $modules = Import-PowerShellDataFile -LiteralPath src/RequiredModules.psd1
+          Install-Module Pester -RequiredVersion $modules.Pester -Scope CurrentUser -Force
+          Install-Module PSScriptAnalyzer -RequiredVersion $modules.PSScriptAnalyzer -Scope CurrentUser -Force
+          Import-Module Pester -RequiredVersion $modules.Pester
           Invoke-Pester -Path tests -CI
 
   # The action scans its own code and fails on any finding.
@@ -43,8 +44,8 @@ jobs:
       - name: PwshGuard
         uses: ./
         with:
-          path: src, tests
-          workflow-path: action.yml, .github/workflows/ci.yml
+          path: src, tests, .github/scripts
+          workflow-path: action.yml, .github/workflows/ci.yml, .github/workflows/update-modules.yml
           comment: "false"
           fail-on: all
 

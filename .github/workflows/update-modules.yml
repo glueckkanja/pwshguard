@@ -1,0 +1,34 @@
+# Proposes updates of the PowerShell Gallery modules pinned in src/RequiredModules.psd1
+# (PSScriptAnalyzer, Pester), which Dependabot does not support. See
+# .github/scripts/Update-RequiredModules.ps1. Needs "Allow GitHub Actions to create and approve
+# pull requests" in the repository's Actions settings.
+name: Update PowerShell modules
+
+on:
+  schedule:
+    - cron: "17 5 1 * *" # monthly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: Propose module updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # branch and commit through the API
+      pull-requests: write # opens the pull request
+      actions: write # starts CI on the branch
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Propose module updates
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: ./.github/scripts/Update-RequiredModules.ps1
